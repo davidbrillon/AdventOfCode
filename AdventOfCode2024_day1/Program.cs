@@ -6,7 +6,8 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-var data = File.ReadAllLines("C:/Users/dbrillon/source/repos/AdventOfCode2024/AdventOfCode2024_day1/AdventOfCode2024_day1/input.txt")
+
+var data = File.ReadAllLines(GetInputPath("input.txt"))
                .Select(line => line.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries)
                                    .Select(int.Parse).ToArray())
                .ToArray();
@@ -63,14 +64,19 @@ Console.WriteLine($"Similarity Score Distance: {simScore}");
 //day5_part1_opt();
 day5_part2_opt();
 
+static string GetInputPath(string fileName)
+{
+  var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "data", fileName);
+  return path;
+}
 
 static void day2()
 {
   // Part 1: Answer is 379
   // Part 2: Answer is 430
   // Read the input data from the file
-  string filePath = "C:/Users/dbrillon/source/repos/AdventOfCode2024/AdventOfCode2024_day1/AdventOfCode2024_day1/input_day2.txt";
-  //string filePath = "C:/Users/dbrillon/source/repos/AdventOfCode2024/AdventOfCode2024_day1/AdventOfCode2024_day1/test_day2.txt";
+  string filePath = GetInputPath("input_day2.txt");
+  //string filePath = GetInputPath("test_day2.txt");
   string[] reports = File.ReadAllLines(filePath);
 
   int safeCount = 0;
@@ -138,7 +144,7 @@ static void day3_part1()
   // Answer Part 1 = 179571322
 
   //string input = "xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))";
-  string filePath = "C:/Users/dbrillon/source/repos/AdventOfCode2024/AdventOfCode2024_day1/AdventOfCode2024_day1/input_day3.txt";
+  string filePath = GetInputPath("input_day3.txt");
   string input = File.ReadAllText(filePath);
     
   // Define a regex pattern to match valid mul(X,Y) instructions
@@ -163,7 +169,7 @@ static void day3_part2()
   // Answer Part 2 = 103811193
 
   // Specify the file path
-  string filePath = "C:/Users/dbrillon/source/repos/AdventOfCode2024/AdventOfCode2024_day1/AdventOfCode2024_day1/input_day3.txt";
+  string filePath = GetInputPath("input_day3.txt");
   string input = File.ReadAllText(filePath);
   //input = "xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))";
 
@@ -208,7 +214,7 @@ static void day4_part1()
   //          "MXMXAXMASX"
   //      };
 
-  string filePath = "C:/Users/dbrillon/source/repos/AdventOfCode2024/AdventOfCode2024_day1/AdventOfCode2024_day1/input_day4.txt";
+  string filePath = GetInputPath("input_day4.txt");
   string[] grid = File.ReadAllLines(filePath);
 
   string word = "XMAS";
@@ -293,7 +299,7 @@ static void day4_part2()
   //          "MXMXAXMASX"
   //      };
 
-  string filePath = "C:/Users/dbrillon/source/repos/AdventOfCode2024/AdventOfCode2024_day1/AdventOfCode2024_day1/input_day4.txt";
+  string filePath = GetInputPath("input_day4.txt");
   string[] gridInput = File.ReadAllLines(filePath);
 
 
@@ -354,7 +360,7 @@ static bool IsValidMas(string diagonal)
 
 
 // Day 5 Part 1. Ans 5248
-// string filePath = "C:/Users/dbrillon/source/repos/AdventOfCode2024/AdventOfCode2024_day1/AdventOfCode2024_day1/input_day5.txt";
+// string filePath = GetInputPath("input_day5.txt");
 // string[] input = File.ReadAllLines(filePath);
 static void day5_part1()
 {
@@ -455,7 +461,7 @@ static void day5_part1_opt()
   //    "53|13", "", "75,47,61,53,29", "97,61,53,29,13", "75,29,13", "75,97,47,61,53", "61,13,29",
   //    "97,13,75,29,47"
   //  };
-   string filePath = "C:/Users/dbrillon/source/repos/AdventOfCode2024/AdventOfCode2024_day1/AdventOfCode2024_day1/input_day5.txt";
+   string filePath = GetInputPath("input_day5.txt");
    string[] input = File.ReadAllLines(filePath);
 
   var rules = input.TakeWhile(line => line.Contains('|'))
@@ -487,8 +493,8 @@ static void day5_part2_opt()
       "53|13", "", "75,47,61,53,29", "97,61,53,29,13", "75,29,13", "75,97,47,61,53", "61,13,29",
       "97,13,75,29,47"
     };
-   string filePath = "C:/Users/dbrillon/source/repos/AdventOfCode2024/AdventOfCode2024_day1/AdventOfCode2024_day1/input_day5.txt";
-   string[] input = File.ReadAllLines(filePath);
+  string filePath = GetInputPath("input_day5.txt");
+  string[] input = File.ReadAllLines(filePath);
 
   var rules = input.TakeWhile(line => line.Contains('|'))
                    .Select(line => line.Split('|').Select(int.Parse).ToArray())
