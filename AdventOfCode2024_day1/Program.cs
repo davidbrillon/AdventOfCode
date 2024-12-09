@@ -62,7 +62,8 @@ Console.WriteLine($"Similarity Score Distance: {simScore}");
 //day4_part2();
 //day5_part1();
 //day5_part1_opt();
-day5_part2_opt();
+//day5_part2_opt();
+day6_part1();
 
 static string GetInputPath(string fileName)
 {
@@ -543,22 +544,256 @@ static void day5_part2_opt()
 
 static void day6_part1()
 {
-  // Part 1 answer: 1960
+  // Part 1 answer: 4656
 
-  string[] gridInput = [
+  string[] gridInput_ = [
     "....#.....",
-    "....^....#",
+    ".........#",
     "..........",
     "..#.......",
     ".......#..",
     "..........",
-    ".#........",
+    ".#..^.....",
     "........#.",
     "#.........",
     "......#..."
   ];
 
+  string filePath = GetInputPath("input_day6.txt");
+  string[] gridInput = File.ReadAllLines(filePath);
 
 
 
+  //var count = SimulateGuard(gridInput);
+  var count = FindLoopObstructionPositions(gridInput);
+
+}
+
+static int SimulateGuard(string[] gridInput)
+{
+  int rows = gridInput.Length;
+  int cols = gridInput[0].Length;
+  char[,] grid = new char[rows, cols];
+  (int x, int y) guardPosition = (0, 0); // (x: column, y: row)
+  char direction = '^';
+
+  // Initialize grid and find guard's starting position
+  for (int y = 0; y < rows; y++) // y: row index
+  {
+    for (int x = 0; x < cols; x++) // x: column index
+    {
+      grid[y, x] = gridInput[y][x];
+      if ("^v<>".Contains(grid[y, x]))
+      {
+        guardPosition = (x, y); // Set start position
+        direction = grid[y, x];
+        grid[y, x] = '.'; // Replace with empty space
+      }
+    }
   }
+
+  // Directions: Up, Right, Down, Left (dy, dx)
+  (int dx, int dy)[] directions = { (0, -1), (1, 0), (0, 1), (-1, 0) }; 
+  int directionIndex = "^>v<".IndexOf(direction);
+
+  HashSet<(int, int)> visited = new HashSet<(int, int)> { guardPosition };
+
+  while (true)
+  {
+    // Calculate next position
+    (int nx, int ny) = (
+        guardPosition.x + directions[directionIndex].dx,
+        guardPosition.y + directions[directionIndex].dy
+    );
+
+    // Check if next position is out of bounds or has an obstacle
+
+    if (nx < 0 || ny < 0 || nx >= cols || ny >= rows)
+    {
+      break;  
+    }
+    else if (grid[ny, nx] == '#')
+    {
+      // Turn right if the guard cannot move forward
+      directionIndex = (directionIndex + 1) % 4;
+    }
+    else
+    {
+      // Move forward if possible
+      guardPosition = (nx, ny);
+      visited.Add(guardPosition);
+
+      // Stop if the guard moves out of bounds
+      if (guardPosition.x < 0 || guardPosition.y < 0 || guardPosition.x >= cols || guardPosition.y >= rows)
+        break;
+    }
+
+    // Break condition to ensure no infinite loop
+    if (visited.Count >= rows * cols) // Safety condition
+      break;
+  }
+
+  return visited.Count;
+}
+
+//PART2
+// Answer 1575
+
+
+static int FindLoopObstructionPositions(string[] gridInput)
+{
+  int rows = gridInput.Length;
+  int cols = gridInput[0].Length;
+  char[,] grid = new char[rows, cols];
+  (int x, int y) guardStart = (0, 0); // Guard's starting position
+  char direction = '^';
+
+  // Initialize grid and find guard's starting position
+  for (int y = 0; y < rows; y++)
+  {
+    for (int x = 0; x < cols; x++)
+    {
+      grid[y, x] = gridInput[y][x];
+      if ("^v<>".Contains(grid[y, x]))
+      {
+        guardStart = (x, y);
+        direction = grid[y, x];
+        grid[y, x] = '.'; // Replace with empty space
+      }
+    }
+  }
+
+  // Get the initial path of the guard
+  HashSet<(int x, int y)> guardPath = GetGuardPath(grid, guardStart, direction);
+
+  // Test each position on the guard's path for validity
+  int validPositions = 0;
+
+  foreach (var pos in guardPath)
+  {
+    if (pos != guardStart)
+    {
+      // Temporarily add an obstruction
+      grid[pos.y, pos.x] = '#';
+
+      // Check if this causes a loop
+      if (SimulateGuardLoop(grid, guardStart, direction))
+      {
+        validPositions++;
+      }
+
+      // Remove the obstruction
+      grid[pos.y, pos.x] = '.';
+    }
+  }
+
+  return validPositions;
+}
+
+static HashSet<(int x, int y)> GetGuardPath(char[,] grid, (int x, int y) guardStart, char direction)
+{
+  int rows = grid.GetLength(0);
+  int cols = grid.GetLength(1);
+
+  // Directions: Up, Right, Down, Left (dy, dx)
+  (int dx, int dy)[] directions = { (0, -1), (1, 0), (0, 1), (-1, 0) };
+  int directionIndex = "^>v<".IndexOf(direction);
+
+  (int x, int y) guardPosition = guardStart;
+  HashSet<(int, int)> path = new HashSet<(int, int)> { guardPosition };
+
+  while (true)
+  {
+    //path.Add(guardPosition);
+
+    // Calculate next position
+    (int nx, int ny) = (
+        guardPosition.x + directions[directionIndex].dx,
+        guardPosition.y + directions[directionIndex].dy
+    );
+
+    // Check if next position is out of bounds or has an obstacle
+    if (nx < 0 || ny < 0 || nx >= cols || ny >= rows)
+    {
+      break;
+    }
+    else if (grid[ny, nx] == '#')
+    {
+      // Turn right if the guard cannot move forward
+      directionIndex = (directionIndex + 1) % 4;
+    }
+    else
+    {
+      // Move forward
+      guardPosition = (nx, ny);
+      path.Add(guardPosition);
+
+      // Stop if the guard moves out of bounds
+      if (guardPosition.x < 0 || guardPosition.y < 0 || guardPosition.x >= cols || guardPosition.y >= rows)
+        break;
+    }
+
+    // Stop if the guard revisits the starting position
+    //if (guardPosition == guardStart && path.Count > 1)
+    //  break;
+
+    // Safety condition to avoid infinite loops
+    if (path.Count > rows * cols)
+      break;
+  }
+
+  return path;
+}
+
+static bool SimulateGuardLoop(char[,] grid, (int x, int y) guardStart, char direction)
+{
+  int rows = grid.GetLength(0);
+  int cols = grid.GetLength(1);
+
+  // Directions: Up, Right, Down, Left (dy, dx)
+  (int dx, int dy)[] directions = { (0, -1), (1, 0), (0, 1), (-1, 0) };
+  int directionIndex = "^>v<".IndexOf(direction);
+
+  (int x, int y) guardPosition = guardStart;
+  HashSet<(int, int, int)> visitedStates = new HashSet<(int, int, int)>(); // Track (x, y, directionIndex)
+
+  while (true)
+  {
+    // Check if this state has been seen before
+    if (visitedStates.Contains((guardPosition.x, guardPosition.y, directionIndex)))
+    {
+      // Guard is stuck in a loop
+      return true;
+    }
+
+    visitedStates.Add((guardPosition.x, guardPosition.y, directionIndex));
+
+    // Calculate next position
+    (int nx, int ny) = (
+        guardPosition.x + directions[directionIndex].dx,
+        guardPosition.y + directions[directionIndex].dy
+    );
+
+    // Check if next position is out of bounds or has an obstacle
+    if (nx < 0 || ny < 0 || nx >= cols || ny >= rows)
+    {
+      break;
+    } else if (grid[ny, nx] == '#')
+    {
+      // Turn right if the guard cannot move forward
+      directionIndex = (directionIndex + 1) % 4;
+    }
+    else
+    {
+      // Move forward
+      guardPosition = (nx, ny);
+    }
+
+    // Break condition to ensure no infinite loop
+    if (visitedStates.Count > rows * cols) // Safety condition
+      break;
+  }
+
+  return false; // Guard does not get stuck in a loop
+}
+
