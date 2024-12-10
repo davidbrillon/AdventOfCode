@@ -68,8 +68,8 @@ Console.WriteLine($"Similarity Score Distance: {simScore}");
 //day7_part2();
 //day8_part1();
 //day8_part2();
-
-DiskCompactionPart2.Main();
+//DiskCompactionPart2.Main();
+AdventOfCodeDay10.Main();
 
 static string GetInputPath(string fileName)
 {
