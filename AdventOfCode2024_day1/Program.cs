@@ -63,7 +63,13 @@ Console.WriteLine($"Similarity Score Distance: {simScore}");
 //day5_part1();
 //day5_part1_opt();
 //day5_part2_opt();
-day6_part1();
+//day6_part1();
+//day7_part1();
+//day7_part2();
+//day8_part1();
+//day8_part2();
+
+DiskCompactionPart2.Main();
 
 static string GetInputPath(string fileName)
 {
@@ -796,4 +802,481 @@ static bool SimulateGuardLoop(char[,] grid, (int x, int y) guardStart, char dire
 
   return false; // Guard does not get stuck in a loop
 }
+
+///DAY7
+static void day7_part1()
+{
+  // Answer: 1289579105366
+  // Sample input lines
+  string[] inputLines_ = new string[]
+  {
+            "190: 10 19",
+            "3267: 81 40 27",
+            "83: 17 5",
+            "156: 15 6",
+            "7290: 6 8 6 15",
+            "161011: 16 10 13",
+            "192: 17 8 14",
+            "21037: 9 7 18 13",
+            "292: 11 6 16 20"
+  };
+
+  string filePath = GetInputPath("input_day7.txt");
+  string[] inputLines = File.ReadAllLines(filePath);
+
+  long totalCalibrationResult = 0;
+
+  foreach (var line in inputLines)
+  {
+    // Split the line into test value and numbers
+    var parts = line.Split(':');
+    if (parts.Length != 2)
+    {
+      Console.WriteLine($"Invalid line format: {line}");
+      continue;
+    }
+
+    // Parse the test value
+    if (!long.TryParse(parts[0].Trim(), out long testValue))
+    {
+      Console.WriteLine($"Invalid test value in line: {line}");
+      continue;
+    }
+
+    // Parse the numbers
+    var numberStrings = parts[1].Trim().Split(' ');
+    List<long> numbers = new List<long>();
+    bool validNumbers = true;
+    foreach (var numStr in numberStrings)
+    {
+      if (long.TryParse(numStr, out long num))
+      {
+        numbers.Add(num);
+      }
+      else
+      {
+        Console.WriteLine($"Invalid number '{numStr}' in line: {line}");
+        validNumbers = false;
+        break;
+      }
+    }
+
+    if (!validNumbers || numbers.Count == 0)
+    {
+      continue;
+    }
+
+    // Generate all possible operator combinations
+    int operatorSlots = numbers.Count - 1;
+    int totalCombinations = (int)Math.Pow(2, operatorSlots);
+    bool isValid = false;
+
+    for (int i = 0; i < totalCombinations; i++)
+    {
+      // Generate operator sequence based on the bits of i
+      List<char> operators = new List<char>();
+      for (int bit = 0; bit < operatorSlots; bit++)
+      {
+        if ((i & (1 << bit)) != 0)
+          operators.Add('*');
+        else
+          operators.Add('+');
+      }
+
+      // Evaluate the expression left-to-right
+      long result = numbers[0];
+      for (int j = 0; j < operators.Count; j++)
+      {
+        if (operators[j] == '+')
+        {
+          result += numbers[j + 1];
+        }
+        else if (operators[j] == '*')
+        {
+          result *= numbers[j + 1];
+        }
+      }
+
+      // Check if the result matches the test value
+      if (result == testValue)
+      {
+        isValid = true;
+        break; // No need to check other combinations
+      }
+    }
+
+    if (isValid)
+    {
+      totalCalibrationResult += testValue;
+      Console.WriteLine($"Valid: {line}");
+    }
+    else
+    {
+      Console.WriteLine($"Invalid: {line}");
+    }
+  }
+
+  Console.WriteLine($"\nTotal Calibration Result: {totalCalibrationResult}");
+}
+
+
+static void day7_part2()
+{
+  // Answer: 92148721834692  
+  // Sample input lines
+  string[] inputLines_ = new string[]
+  {
+            "190: 10 19",
+            "3267: 81 40 27",
+            "83: 17 5",
+            "156: 15 6",
+            "7290: 6 8 6 15",
+            "161011: 16 10 13",
+            "192: 17 8 14",
+            "21037: 9 7 18 13",
+            "292: 11 6 16 20"
+  };
+  string filePath = GetInputPath("input_day7.txt");
+  string[] inputLines = File.ReadAllLines(filePath);
+
+  long totalCalibrationResult = 0;
+
+  foreach (var line in inputLines)
+  {
+    // Split the line into test value and numbers
+    var parts = line.Split(':');
+    if (parts.Length != 2)
+    {
+      Console.WriteLine($"Invalid line format: {line}");
+      continue;
+    }
+
+    // Parse the test value
+    if (!long.TryParse(parts[0].Trim(), out long testValue))
+    {
+      Console.WriteLine($"Invalid test value in line: {line}");
+      continue;
+    }
+
+    // Parse the numbers
+    var numberStrings = parts[1].Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+    List<long> numbers = new List<long>();
+    bool validNumbers = true;
+    foreach (var numStr in numberStrings)
+    {
+      if (long.TryParse(numStr, out long num))
+      {
+        numbers.Add(num);
+      }
+      else
+      {
+        Console.WriteLine($"Invalid number '{numStr}' in line: {line}");
+        validNumbers = false;
+        break;
+      }
+    }
+
+    if (!validNumbers || numbers.Count == 0)
+    {
+      continue;
+    }
+
+    // Generate all possible operator combinations
+    int operatorSlots = numbers.Count - 1;
+    long totalCombinations = (long)Math.Pow(3, operatorSlots);
+    bool isValid = false;
+
+    for (long i = 0; i < totalCombinations; i++)
+    {
+      // Generate operator sequence based on the base-3 representation of i
+      List<Operator> operators = new List<Operator>();
+      long temp = i;
+      for (int slot = 0; slot < operatorSlots; slot++)
+      {
+        int op = (int)(temp % 3);
+        operators.Add((Operator)op);
+        temp /= 3;
+      }
+
+      // Evaluate the expression left-to-right
+      long result = numbers[0];
+      for (int j = 0; j < operators.Count; j++)
+      {
+        switch (operators[j])
+        {
+          case Operator.Add:
+            result += numbers[j + 1];
+            break;
+          case Operator.Multiply:
+            result *= numbers[j + 1];
+            break;
+          case Operator.Concatenate:
+            result = ConcatenateNumbers(result, numbers[j + 1]);
+            break;
+        }
+
+        // Early termination if result exceeds testValue and operators do not include concatenation
+        // This can optimize for some cases but is optional
+      }
+
+      // Check if the result matches the test value
+      if (result == testValue)
+      {
+        isValid = true;
+        break; // No need to check other combinations
+      }
+    }
+
+    if (isValid)
+    {
+      totalCalibrationResult += testValue;
+      Console.WriteLine($"Valid: {line}");
+    }
+    else
+    {
+      Console.WriteLine($"Invalid: {line}");
+    }
+  }
+
+  Console.WriteLine($"\nTotal Calibration Result: {totalCalibrationResult}");
+
+}
+
+/// <summary>
+/// Concatenates two numbers by combining their digits.
+/// For example, ConcatenateNumbers(12, 345) returns 12345.
+/// </summary>
+/// <param name="left">The left number.</param>
+/// <param name="right">The right number.</param>
+/// <returns>The concatenated number.</returns>
+static long ConcatenateNumbers(long left, long right)
+{
+  if (right == 0)
+    return left * 10;
+
+  long multiplier = 1;
+  long temp = right;
+  while (temp > 0)
+  {
+    multiplier *= 10;
+    temp /= 10;
+  }
+  return left * multiplier + right;
+}
+
+static void day8_part1()
+{
+  // Answer = 293
+  // Example input as a string array
+  string[] inputLines_ = new string[]
+  {
+            "............",
+            "........0...",
+            ".....0......",
+            ".......0....",
+            "....0.......",
+            "......A.....",
+            "............",
+            "............",
+            "........A...",
+            ".........A..",
+            "............",
+            "............"
+  };
+  string filePath = GetInputPath("input_day8.txt");
+  string[] inputLines = File.ReadAllLines(filePath);
+
+
+  int height = inputLines.Length;
+  int width = inputLines[0].Length;
+
+  // Dictionary mapping frequencies to list of antenna positions
+  Dictionary<char, List<(int x, int y)>> frequencyAntennas = new Dictionary<char, List<(int x, int y)>>();
+
+  for (int y = 0; y < height; y++)
+  {
+    string row = inputLines[y];
+    for (int x = 0; x < width; x++)
+    {
+      char c = row[x];
+      if (char.IsLetterOrDigit(c))
+      {
+        if (!frequencyAntennas.ContainsKey(c))
+        {
+          frequencyAntennas[c] = new List<(int x, int y)>();
+        }
+        frequencyAntennas[c].Add((x, y));
+      }
+    }
+  }
+
+  // HashSet to store unique antinode positions
+  HashSet<(int x, int y)> antinodePositions = new HashSet<(int x, int y)>();
+
+  foreach (var kvp in frequencyAntennas)
+  {
+    List<(int x, int y)> antennas = kvp.Value;
+
+    int n = antennas.Count;
+    for (int i = 0; i < n; i++)
+    {
+      var A = antennas[i];
+      for (int j = i + 1; j < n; j++)
+      {
+        var B = antennas[j];
+
+        // Compute the two antinode positions for the pair (A, B)
+
+        // First antinode P1
+        int P1_x = 2 * A.x - B.x;
+        int P1_y = 2 * A.y - B.y;
+
+        if (IsValid(P1_x, P1_y, width, height))
+        {
+          antinodePositions.Add((P1_x, P1_y));
+        }
+
+        // Second antinode P2
+        int P2_x = 2 * B.x - A.x;
+        int P2_y = 2 * B.y - A.y;
+
+        if (IsValid(P2_x, P2_y, width, height))
+        {
+          antinodePositions.Add((P2_x, P2_y));
+        }
+      }
+    }
+  }
+
+  Console.WriteLine(antinodePositions.Count);
+}
+
+// Helper method to check if a position is valid within the bounds of the map
+static bool IsValid(int x, int y, int width, int height)
+{
+  return x >= 0 && x < width && y >= 0 && y < height;
+}
+
+/// PART 2
+
+static void day8_part2()
+{
+  // Answer is 934
+
+  string[] inputLines_ = new string[]
+  {
+        "............",
+        "........0...",
+        ".....0......",
+        ".......0....",
+        "....0.......",
+        "......A.....",
+        "............",
+        "............",
+        "........A...",
+        ".........A..",
+        "............",
+        "............"
+  };
+
+  string filePath = GetInputPath("input_day8.txt");
+  string[] inputLines = File.ReadAllLines(filePath);
+
+  int height = inputLines.Length;
+  int width = inputLines[0].Length;
+
+  // Dictionary mapping frequencies to list of antenna positions
+  Dictionary<char, List<(int x, int y)>> frequencyAntennas = new Dictionary<char, List<(int x, int y)>>();
+
+  for (int y = 0; y < height; y++)
+  {
+    string row = inputLines[y];
+    for (int x = 0; x < width; x++)
+    {
+      char c = row[x];
+      if (char.IsLetterOrDigit(c))
+      {
+        if (!frequencyAntennas.ContainsKey(c))
+        {
+          frequencyAntennas[c] = new List<(int x, int y)>();
+        }
+        frequencyAntennas[c].Add((x, y));
+      }
+    }
+  }
+
+  // HashSet to store unique antinode positions
+  HashSet<(int x, int y)> antinodePositions = new HashSet<(int x, int y)>();
+
+  foreach (var kvp in frequencyAntennas)
+  {
+    char frequency = kvp.Key;
+    List<(int x, int y)> antennas = kvp.Value;
+
+    if (antennas.Count == 1)
+    {
+      // Single antenna of a unique frequency creates an antinode only at its position
+      antinodePositions.Add(antennas[0]);
+      continue;
+    }
+
+    // For each pair of antennas, calculate all positions in line
+    for (int i = 0; i < antennas.Count; i++)
+    {
+      var A = antennas[i];
+      antinodePositions.Add(A); // Add the antenna's position
+
+      for (int j = i + 1; j < antennas.Count; j++)
+      {
+        var B = antennas[j];
+
+        // Calculate the step size using GCD
+        int dx = B.x - A.x;
+        int dy = B.y - A.y;
+        int gcd = GCD(Math.Abs(dx), Math.Abs(dy));
+        dx /= gcd;
+        dy /= gcd;
+
+        // Traverse the line in both directions
+        AddAntinodesOnLine(A, dx, dy, width, height, antinodePositions);
+        AddAntinodesOnLine(B, -dx, -dy, width, height, antinodePositions);
+      }
+    }
+  }
+
+  Console.WriteLine(antinodePositions.Count);
+}
+
+// Helper method to add antinodes along a line in a specific direction
+static void AddAntinodesOnLine((int x, int y) start, int dx, int dy, int width, int height, HashSet<(int x, int y)> antinodePositions)
+{
+  int x = start.x + dx;
+  int y = start.y + dy;
+
+  while (IsValid2(x, y, width, height))
+  {
+    antinodePositions.Add((x, y));
+    x += dx;
+    y += dy;
+  }
+}
+
+// Helper method to check if a position is valid within the bounds of the map
+static bool IsValid2(int x, int y, int width, int height)
+{
+  return x >= 0 && x < width && y >= 0 && y < height;
+}
+
+// Helper method to compute the GCD of two integers
+static int GCD(int a, int b)
+{
+  while (b != 0)
+  {
+    int temp = b;
+    b = a % b;
+    a = temp;
+  }
+  return a;
+}
+
 
