@@ -1,22 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
 
-public class AdventOfCodeDay10
+public class AdventOfCodeDay10Part2
 {
   static string[] puzzleInput = [
-    "89010123",
-    "78121874",
-    "87430965",
-    "96549874",
-    "45678903",
-    "32019012",
-    "01329801",
-    "10456732"];
+      "89010123",
+        "78121874",
+        "87430965",
+        "96549874",
+        "45678903",
+        "32019012",
+        "01329801",
+        "10456732"
+  ];
 
   // Directions: up, down, left, right
   private static readonly (int dx, int dy)[] Directions = new (int dx, int dy)[]
   {
-        (0,1), (0,-1), (1,0), (-1,0)
+        (0, 1), (0, -1), (1, 0), (-1, 0)
   };
 
   public static void Main()
@@ -27,10 +28,6 @@ public class AdventOfCodeDay10
 
   public void Run()
   {
-    string filePath = GetInputPath("input_day10.txt");
-    //string[] puzzleInput = File.ReadAllLines(filePath);
-
-
     // Parse input into a 2D grid
     var grid = ParseInput(puzzleInput, out int rows, out int cols);
 
@@ -47,21 +44,22 @@ public class AdventOfCodeDay10
       }
     }
 
-    // Memoization dictionary: for each cell, store set of reachable "9" coordinates as strings
-    Dictionary<(int r, int c), HashSet<string>> memo = new Dictionary<(int r, int c), HashSet<string>>();
+    // Memoization dictionary for trail ratings
+    Dictionary<(int r, int c), int> memo = new Dictionary<(int r, int c), int>();
 
-    int sumOfScores = 0;
+    int sumOfRatings = 0;
     foreach (var start in trailheads)
     {
-      var reachableNines = DFS(start.r, start.c, grid, rows, cols, memo);
-      sumOfScores += reachableNines.Count;
+      int trailRating = CountDistinctTrails(start.r, start.c, grid, rows, cols, memo, new HashSet<(int, int)>());
+      sumOfRatings += trailRating;
     }
 
     // Print the result
-    Console.WriteLine(sumOfScores);
+    Console.WriteLine(sumOfRatings);
   }
 
-  private HashSet<string> DFS(int r, int c, int[,] grid, int rows, int cols, Dictionary<(int r, int c), HashSet<string>> memo)
+  private int CountDistinctTrails(int r, int c, int[,] grid, int rows, int cols,
+      Dictionary<(int r, int c), int> memo, HashSet<(int, int)> visited)
   {
     if (memo.ContainsKey((r, c)))
     {
@@ -69,33 +67,33 @@ public class AdventOfCodeDay10
     }
 
     int currentHeight = grid[r, c];
-    var result = new HashSet<string>();
 
-    // If current cell is height '9', record this cell
+    // If current cell is height '9', this is a valid trail endpoint
     if (currentHeight == 9)
     {
-      result.Add($"{r},{c}");
-      memo[(r, c)] = result;
-      return result;
+      return 1;
     }
+
+    int totalTrails = 0;
+    visited.Add((r, c));
 
     // Try all valid moves that go from height h to h+1
     foreach (var (dx, dy) in Directions)
     {
       int nr = r + dx;
       int nc = c + dy;
-      if (nr < 0 || nr >= rows || nc < 0 || nc >= cols)
+      if (nr < 0 || nr >= rows || nc < 0 || nc >= cols || visited.Contains((nr, nc)))
         continue;
 
       if (grid[nr, nc] == currentHeight + 1)
       {
-        foreach (var ninePos in DFS(nr, nc, grid, rows, cols, memo))
-          result.Add(ninePos);
+        totalTrails += CountDistinctTrails(nr, nc, grid, rows, cols, memo, new HashSet<(int, int)>(visited));
       }
     }
 
-    memo[(r, c)] = result;
-    return result;
+    visited.Remove((r, c));
+    memo[(r, c)] = totalTrails;
+    return totalTrails;
   }
 
   private int[,] ParseInput(string[] inputLines, out int rows, out int cols)
@@ -113,11 +111,5 @@ public class AdventOfCodeDay10
       }
     }
     return grid;
-  }
-
-  static string GetInputPath(string fileName)
-  {
-    var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "data", fileName);
-    return path;
   }
 }
