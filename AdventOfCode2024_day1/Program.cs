@@ -75,7 +75,8 @@ Console.WriteLine($"Similarity Score Distance: {simScore}");
 //GardenFenceCost_D12P1.Main();
 //GardenFenceCost_D12P2.Main();
 //GardenFenceCost_D12P2V2.Main();
-D13P2V1.Main();
+//D13P1V1.Main();
+//D13P2V1.Main();
 
 
 static string GetInputPath(string fileName)
